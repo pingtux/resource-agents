@@ -64,6 +64,7 @@ LOCALHOST="http://localhost"
 HTTPDOPTS="-DSTATUS"
 DEFAULT_IBMCONFIG=/opt/IBMHTTPServer/conf/httpd.conf
 DEFAULT_SUSECONFIG="/etc/apache2/httpd.conf"
+DEFAULT_SUSE_SYSCONFIG="/etc/sysconfig/apache2"
 DEFAULT_RHELCONFIG="/etc/httpd/conf/httpd.conf"
 #
 # You can also set
@@ -170,6 +171,18 @@ validate_default_suse_config() {
 			ocf_run -q /usr/sbin/start_apache2 -t || return 1
 		fi
 	fi
+        if [ -e $DEFAULT_SUSE_SYSCONFIG ]; then
+                . $DEFAULT_SUSE_SYSCONFIG
+                for i in $APACHE_SERVER_FLAGS; do
+                        # check if the user already has set -D in the flags
+                        case $i in
+                        -D) ;;
+                        -D*)            server_flags="$server_flags $i";;
+                        *)              server_flags="$server_flags -D$i";;
+                        esac
+                done
+                HTTPDOPTS="$HTTPDOPTS $server_flags"
+        fi
 	return 0
 }
 
